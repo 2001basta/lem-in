@@ -16,5 +16,5 @@ func main() {
 	// lem_in.Paths = lem_in.ChosePath(start, lem_in.SortPath(lem_in.Paths))
 	// fmt.Println(lem_in.Paths)
 	// // lem_in.AntsMouve(numAnt,lem_in.Paths)
-	lem_in.Output(ants, lem_in.Paths)
+	lem_in.Output2(ants, lem_in.Paths)
 }

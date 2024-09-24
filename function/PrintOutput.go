@@ -1,6 +1,10 @@
 package lem_in
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+	"time"
+)
 
 func Output(ants int, paths [][]string) {
 	arr := Choose(paths)
@@ -33,15 +37,14 @@ func Output(ants int, paths [][]string) {
 		temp := l
 		tempan := an
 		for {
-
 			if i < len(paths) {
 				if j < len(paths[i]) {
 					if l < len(output) {
 						output[l] = append(output[l], fmt.Sprintf("L%v-%v", an, paths[i][j]))
-						an++
+						// an++
 					} else {
 						out = append(out, fmt.Sprintf("L%v-%v", an, paths[i][j]))
-						an++
+						// an++
 					}
 				}
 				i++
@@ -59,18 +62,17 @@ func Output(ants int, paths [][]string) {
 					l++
 				}
 			}
-			if i < len(paths) {
-				if j > len(paths[i]) {
-					// stop = true
-					an = tempan
-					break
-				}
+
+			if j > len(paths[i]) {
+				// stop = true
+				// an = tempan
+				break
 			}
 
 		}
 		ants = ants - len(paths)
 		tempan += stop
-		an = tempan
+		// an = tempan
 		i = 0
 		j = 0
 		temp++
@@ -92,4 +94,54 @@ func printoutput(output [][]string) {
 		}
 
 	}
+}
+
+var (
+	antsPaths = make(map[int][]string)
+	output    = [][]string{}
+	mu        sync.Mutex
+	p         int = 0
+	st        int = 0
+)
+
+func Output2(ants int, paths [][]string) {
+	arr := Choose(paths)
+	paths = Rec(arr)
+	t := 0
+	fmt.Println(paths)
+	for i := 1; i <= ants; i++ {
+		antsPaths[i] = paths[t]
+		t++
+		if t == len(paths) {
+			t = 0
+		}
+	}
+
+	fmt.Println(antsPaths)
+	for in,_ := range antsPaths {
+		go mouveAnt(in, p)
+		if in%len(paths) != 0 {
+			p++
+		}
+		
+
+		time.Sleep(time.Second * 1 / 8)
+	}
+	for _, p := range output {
+		fmt.Println(p)
+	}
+}
+
+func mouveAnt(ant int, j int) {
+	mu.Lock()
+	fmt.Println(ant, j)
+	for i := 0; i < len(antsPaths[ant]); i++ {
+		if j < len(output) {
+			output[j] = append(output[j], fmt.Sprintf("L%v-%v", p, antsPaths[ant][i]))
+		} else {
+			output = append(output, []string{fmt.Sprintf("L%v-%v", p, antsPaths[ant][i])})
+		}
+		j++
+	}
+	mu.Unlock()
 }

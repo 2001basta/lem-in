@@ -58,7 +58,7 @@ func Printlnlinks(pat, ar [][]string) {
 		if !checkArry(ar[j]) {
 			continue
 		}
-		for k := 0; k < len(ar[j]); k++ {
+		for k := len(ar[j])-1; k >=0; k-- {
 			if ar[j][k] != "" {
 				if k < len(pat[a]) {
 					fmt.Print(ar[j][k] + pat[a][k] + " ")

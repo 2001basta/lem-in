@@ -4,8 +4,7 @@ var occuped = make(map[string]bool)
 
 var slice = [][]string{}
 
-func Rec(p [][]string) [][]string {
-	paths := p
+func Rec(paths [][]string) [][]string {
 	for i := 0; i < len(paths); i++ {
 		for j := 0; j < len(paths[i]); j++ {
 			if !occuped[paths[i][j]] {
@@ -15,10 +14,8 @@ func Rec(p [][]string) [][]string {
 				i--
 				break
 			}
-			break
 		}
 	}
-
 	return slice
 }
 

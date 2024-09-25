@@ -2,146 +2,82 @@ package lem_in
 
 import (
 	"fmt"
-	"sync"
-	"time"
+	"strconv"
 )
 
-func Output(ants int, paths [][]string) {
+func Output2(ants int, paths [][]string) [][]string {
 	arr := Choose(paths)
-	paths = Rec(arr)
-	output := [][]string{}
-	out := []string{}
-	i := 0
-	j := 0
-	s := 0
-	if ants%len(paths) == 0 {
-		s = ants / len(paths)
-	} else {
-		s = ants/len(paths) + 1
+	paths = ChosePath(arr)
+
+	// fmt.Println(paths)
+	rule := make([][]string, len(paths))
+	memoir := 1
+	for i := 0; i < len(paths); i++ {
+		ar := make([]string, len(paths[i]))
+		rule[i] = ar
 	}
-	l := 0
-	stop := len(paths)
-	an := 1
-
-	// lem_in.Rec(paths)
-
-	for l <= s {
-		if ants <= 0 {
+	k := 0
+	str := ""
+	all_rule := [][]string{}
+	for {
+		if k > len(paths)*ants+1 {
 			break
 		}
-		// fmt.Println(ants)
-		if ants < stop {
-			stop = ants
-		}
-
-		temp := l
-		tempan := an
-		for {
-			if i < len(paths) {
-				if j < len(paths[i]) {
-					if l < len(output) {
-						output[l] = append(output[l], fmt.Sprintf("L%v-%v", an, paths[i][j]))
-						// an++
-					} else {
-						out = append(out, fmt.Sprintf("L%v-%v", an, paths[i][j]))
-						// an++
-					}
-				}
-				i++
-				if i == stop {
-
-					if l >= len(output) {
-						tempsl := make([]string, len(out))
-						copy(tempsl, out)
-						output = append(output, tempsl)
-						out = nil
-					}
-					an = tempan
-					i = 0
-					j++
-					l++
-				}
+		for j := 0; j < len(paths); j++ {
+			if memoir <= ants {
+				str = "L" + strconv.Itoa(memoir) + "-"
+				memoir++
 			}
-
-			if j > len(paths[i]) {
-				// stop = true
-				// an = tempan
-				break
-			}
-
+			rule[j] = mouveAnt(rule[j])
+			rule[j][0] = str
+			str = ""
+			all_rule = append(all_rule, rule[j])
+			k++
 		}
-		ants = ants - len(paths)
-		tempan += stop
-		// an = tempan
-		i = 0
-		j = 0
-		temp++
-		l = temp
 	}
-	printoutput(output)
+	return all_rule
 }
 
-func printoutput(output [][]string) {
-	for i := 0; i < len(output); i++ {
-		for j := 0; j < len(output[i]); j++ {
-			fmt.Print(output[i][j])
-			if j < len(output[i])-1 {
-				fmt.Print(" ")
+func mouveAnt(ar []string) []string {
+	arr := make([]string, len(ar))
+	arr[0] = ""
+	for i := 0; i < len(ar); i++ {
+		if i < len(arr)-1 {
+			arr[i+1] = ar[i]
+		}
+	}
+	return arr
+}
+
+func Printlnlinks(pat, ar [][]string) {
+	arr := Choose(pat)
+	pat = ChosePath(arr)
+	fmt.Println(pat)
+	a := 0
+	for j := 0; j < len(ar); j++ {
+		if !checkArry(ar[j]) {
+			continue
+		}
+		for k := 0; k < len(ar[j]); k++ {
+			if ar[j][k] != "" {
+				if k < len(pat[a]) {
+					fmt.Print(ar[j][k] + pat[a][k] + " ")
+				}
 			}
 		}
-		if i < len(output)-1 {
+		a++
+		if a >= len(pat) {
 			fmt.Println()
+			a = 0
 		}
-
 	}
 }
 
-var (
-	antsPaths = make(map[int][]string)
-	output    = [][]string{}
-	mu        sync.Mutex
-	p         int = 0
-	st        int = 0
-)
-
-func Output2(ants int, paths [][]string) {
-	arr := Choose(paths)
-	paths = Rec(arr)
-	t := 0
-	fmt.Println(paths)
-	for i := 1; i <= ants; i++ {
-		antsPaths[i] = paths[t]
-		t++
-		if t == len(paths) {
-			t = 0
+func checkArry(ar []string) bool {
+	for _, i := range ar {
+		if i != "" {
+			return true
 		}
 	}
-
-	fmt.Println(antsPaths)
-	for in,_ := range antsPaths {
-		go mouveAnt(in, p)
-		if in%len(paths) != 0 {
-			p++
-		}
-		
-
-		time.Sleep(time.Second * 1 / 8)
-	}
-	for _, p := range output {
-		fmt.Println(p)
-	}
-}
-
-func mouveAnt(ant int, j int) {
-	mu.Lock()
-	fmt.Println(ant, j)
-	for i := 0; i < len(antsPaths[ant]); i++ {
-		if j < len(output) {
-			output[j] = append(output[j], fmt.Sprintf("L%v-%v", p, antsPaths[ant][i]))
-		} else {
-			output = append(output, []string{fmt.Sprintf("L%v-%v", p, antsPaths[ant][i])})
-		}
-		j++
-	}
-	mu.Unlock()
+	return false
 }

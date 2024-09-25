@@ -1,8 +1,8 @@
 package lem_in
 
-func ChosePath(start string, ar [][]string) [][]string {
+func ChosePath(ar [][]string) [][]string {
 	arr := [][]string{ar[0]}
-	for i := 0; i < len(ar); i++ {
+	for i := 1; i < len(ar); i++ {
 		isvalid := true
 		for j := 0; j < len(arr); j++ {
 			if !compare(ar[i], arr[j]) {
@@ -63,5 +63,6 @@ func sort(arr [][]string, r []int) [][]string {
 			}
 		}
 	}
+
 	return arr
 }

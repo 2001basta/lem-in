@@ -71,6 +71,5 @@ func sort(arr [][]string, r []int) [][]string {
 			}
 		}
 	}
-
 	return arr
 }

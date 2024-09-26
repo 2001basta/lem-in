@@ -27,6 +27,14 @@ func compare(a, b []string) bool {
 			return false
 		}
 	}
+	j := len(b) - 2
+	for i := len(a) - 2; i >= 0; i-- {
+		if a[i] == b[j] {
+			return false
+		}
+		j--
+	}
+	// fmt.Println(a,b)
 	return true
 }
 

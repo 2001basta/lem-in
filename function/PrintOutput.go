@@ -31,7 +31,9 @@ func Output2(ants int, paths [][]string) [][]string {
 			rule[j] = mouveAnt(rule[j])
 			rule[j][0] = str
 			str = ""
-			all_rule = append(all_rule, rule[j])
+			if checkArry(rule[j]) {
+				all_rule = append(all_rule, rule[j])
+			}
 			k++
 		}
 	}
@@ -55,10 +57,7 @@ func Printlnlinks(pat, ar [][]string) {
 	fmt.Println(pat)
 	a := 0
 	for j := 0; j < len(ar); j++ {
-		if !checkArry(ar[j]) {
-			continue
-		}
-		for k := len(ar[j])-1; k >=0; k-- {
+		for k := len(ar[j]) - 1; k >= 0; k-- {
 			if ar[j][k] != "" {
 				if k < len(pat[a]) {
 					fmt.Print(ar[j][k] + pat[a][k] + " ")
@@ -70,6 +69,9 @@ func Printlnlinks(pat, ar [][]string) {
 			fmt.Println()
 			a = 0
 		}
+	}
+	if a > 0 {
+		fmt.Println()
 	}
 }
 

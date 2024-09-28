@@ -2,79 +2,90 @@ package lem_in
 
 import (
 	"fmt"
-	"strconv"
+	"sort"
+	"strings"
 )
 
-var Ant int
+var output = [][]string{}
 
-func Output2(ants int, paths [][]string) {
-	Ant = ants
+func PrintAnts(ants int, paths [][]string) {
 	arr := Choose(paths)
 	paths = ChosePath(arr)
-	paths = SortPath(paths)
-	fmt.Println(paths)
-	rule := make([][]string, len(paths))
-	memoir := 1
-	for i := 0; i < len(paths); i++ {
-		ar := make([]string, len(paths[i]))
-		rule[i] = ar
+	sort.Slice(paths, func(i, j int) bool {
+		return len(paths[i]) < len(paths[j])
+	})
+	affectPaths(ants, paths)
+	j := 0
+	an := 1
+	stop := false
+	for !stop {
+		for p := range antsPaths {
+			if antsPaths[p] != 0 {
+				moveAnts(an, paths[p], j)
+				antsPaths[p]--
+				an++
+				if an > ants {
+					stop = true
+					break
+				}
+			}
+		}
+		j++
+
 	}
-	m := affectPaths(Ant, paths)
-	str := ""
-	boo := false
-	cont := -1
-	for {
-		if len(m) > cont+1 {
-			for a := range m {
-				if m[a] > 0 {
-					cont++
-					m[a]--
-				}
-			}
-		}
-		x := 0
-		for j := 0; j < len(paths); j++ {
-			if memoir <= ants {
-				str = "L" + strconv.Itoa(memoir) + "-"
-				memoir++
-			}
-			//fmt.Println(rule[j],cont,j)
 
-			rule[j] = mouveAnt(rule[j])
-			if x <= cont && cont > -1 {
-				rule[x][0] = str
-				str = ""
-				x++
-			}
-		}
+	printoutput(output)
+	fmt.Println(len(output))
+}
 
-		for z := 0; z < len(rule); z++ {
-			for n := 0; n < len(rule[z]); n++ {
-				if rule[z][n] != "" {
-					fmt.Print(rule[z][n] + paths[z][n] + " ")
-					boo = true
-				}
-			}
-		}
-
-		if !boo {
-			break
-		}
-		fmt.Println()
-		boo = false
-		cont = -1
-
+func printoutput(output [][]string) {
+	for i := 0; i < len(output); i++ {
+		// time.Sleep(time.Second * 1/50 )
+		fmt.Println(strings.Join(output[i], " "))
 	}
 }
 
-// ///////////////////////////////////////////////////////////
-func mouveAnt(ar []string) []string {
-	arr := make([]string, len(ar))
-	arr[0] = ""
-	for i := 0; i < len(ar); i++ {
-		if i < len(arr)-1 {
-			arr[i+1] = ar[i]
+func moveAnts(ant int, path []string, j int) {
+	for i := 0; i < len(path); i++ {
+		toPrint := fmt.Sprintf("L%v-%v", ant, path[i])
+		if j < len(output) {
+			output[j] = append(output[j], toPrint)
+			j++
+		} else {
+			output = append(output, []string{toPrint})
+			j++
 		}
 	}
-	return arr
+}
+
+var antsPaths = make(map[int]int)
+
+// a         int = 1
+func affectPaths(ants int, lastPath [][]string) {
+	ar := [][]string{}
+	a := 1
+	boo := false
+	for i := 1; i < len(lastPath); i++ {
+		diff := len(lastPath[i]) - len(lastPath[i-1])
+		ar = append(ar, lastPath[i-1])
+		for a <= diff {
+			for k := 0; k < len(ar); k++ {
+				antsPaths[k]++
+				a++
+			}
+		}
+	}
+	for a <= ants {
+		if !boo {
+			ar = append(ar, lastPath[len(lastPath)-1])
+			boo = true
+		}
+		for k := 0; k < len(ar); k++ {
+			antsPaths[k]++
+			a++
+			if a == ants+1 {
+				break
+			}
+		}
+	}
 }

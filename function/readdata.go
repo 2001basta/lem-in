@@ -1,6 +1,7 @@
 package lem_in
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -9,7 +10,8 @@ import (
 
 func ReadData(s string) (int, [][]string, string, string) {
 	if len(os.Args) != 2 {
-		log.Fatal("Usage: go run . <file.txt>")
+		fmt.Println("Usage: go run . <file.txt>")
+		os.Exit(1)
 	}
 	data, err := os.ReadFile(os.Args[1])
 	if err != nil {
@@ -20,7 +22,7 @@ func ReadData(s string) (int, [][]string, string, string) {
 	sl_datas := strings.Split(datas, " ")
 	nmbAnts, err := strconv.Atoi(sl_datas[0])
 	if err != nil {
-		log.Fatal(err)
+		nmbAnts = 0
 	}
 	var AllPath []string
 	var Path [][]string
@@ -49,5 +51,3 @@ func ReadData(s string) (int, [][]string, string, string) {
 	}
 	return nmbAnts, Path, start, end
 }
-
-

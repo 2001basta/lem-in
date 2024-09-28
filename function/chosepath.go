@@ -34,12 +34,13 @@ func compare(a, b []string) bool {
 		}
 		j--
 	}
+	// fmt.Println(a,b)
 	return true
 }
 
 func Choose(arr [][]string) [][]string {
 	r := rating(arr)
-	arr = sort(arr, r)
+	arr = sortt(arr, r)
 	return arr
 }
 
@@ -61,7 +62,7 @@ func rating(arr [][]string) []int {
 	return r
 }
 
-func sort(arr [][]string, r []int) [][]string {
+func sortt(arr [][]string, r []int) [][]string {
 	for i := 0; i < len(r); i++ {
 		for j := i + 1; j < len(r); j++ {
 			if r[i] > r[j] {

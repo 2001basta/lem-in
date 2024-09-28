@@ -5,8 +5,15 @@ import (
 )
 
 func main() {
-	ants, links, start, end := lem_in.ReadData("file.txt")
+	ants, links, start, end := lem_in.ReadFile()
 	graph := lem_in.ConvertToGraph(links)
 	lem_in.Dfs(end, graph, []string{start})
-	lem_in.Output2(ants, lem_in.Paths)
+
+	errorMsg := lem_in.CheckErrors(ants, start, end, len(lem_in.Paths))
+
+	if errorMsg == "error" {
+		return
+	}
+
+	lem_in.PrintAnts(ants, lem_in.Paths)
 }

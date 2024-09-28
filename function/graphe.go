@@ -1,11 +1,10 @@
 package lem_in
 
-// BuildGraph converts the edge list into an adjacency list representation.
-func BuildGraph(edges [][]string) map[string][]string {
-	graph := make(map[string][]string)
-	for _, edge := range edges {
-		graph[edge[0]] = append(graph[edge[0]], edge[1])
-		graph[edge[1]] = append(graph[edge[1]], edge[0])
+func ConvertToGraph(ar [][]string) map[string][]string {
+	m := make(map[string][]string)
+	for i := 0; i < len(ar); i++ {
+		m[ar[i][0]] = append(m[ar[i][0]], ar[i][1])
+		m[ar[i][1]] = append(m[ar[i][1]], ar[i][0])
 	}
-	return graph
+	return m
 }

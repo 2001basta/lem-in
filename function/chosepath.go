@@ -34,7 +34,6 @@ func compare(a, b []string) bool {
 		}
 		j--
 	}
-	// fmt.Println(a,b)
 	return true
 }
 

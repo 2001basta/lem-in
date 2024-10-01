@@ -83,7 +83,13 @@ func checkline(s string) []string {
 			fmt.Println("ERROR: invalid data format, some rooms have invalid coordinates")
 			os.Exit(1)
 		}
-		return []string{"node", spl[0]}
+		if validRoom(spl[0]) {
+			return []string{"node", spl[0]}
+		} else {
+			fmt.Println("ERROR: invalid data format, some rooms starts with 'L' or '#' ")
+			os.Exit(1)
+		}
+
 	}
 	if len(spl) == 1 && spl[0] == "##start" {
 		return []string{"start"}
@@ -103,9 +109,19 @@ func checkline(s string) []string {
 	spl = nil
 	spl = strings.Split(s, "-")
 	if len(spl) == 2 {
-		return []string{"edge", spl[0], spl[1]}
+		if validRoom(spl[0]) && validRoom(spl[1]) {
+			return []string{"edge", spl[0], spl[1]}
+		}
 	}
 	spl = nil
 
 	return []string{"nil"}
+}
+
+func validRoom(room string) bool {
+	if string(room[0]) == "L" || string(room[0]) == "#" {
+		fmt.Println("ERROR: invalid data format, some rooms starts with 'L' or '#' ")
+			os.Exit(1)
+	}
+	return true
 }

@@ -11,7 +11,7 @@ var Paths [][]string
 func Defs(end string, graph map[string][]string, path []string) {
 	n := path[len(path)-1]
 	if n == end {
-		fmt.Println(path)
+		fmt.Println(len(Paths))
 		path = path[1:]
 		if NotIn(Paths, path) {
 			Paths = append(Paths, path)

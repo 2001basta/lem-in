@@ -35,7 +35,7 @@ func PrintAnts(ants int, paths [][]string) {
 	}
 
 	printoutput(output)
-	fmt.Println(len(output))
+	// fmt.Println(len(output))
 }
 
 func printoutput(output [][]string) {

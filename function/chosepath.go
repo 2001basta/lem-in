@@ -1,5 +1,7 @@
 package lem_in
 
+import "sort"
+
 func ChosePath(ar [][]string) [][]string {
 	arr := [][]string{ar[0]}
 	for i := 1; i < len(ar); i++ {
@@ -14,6 +16,11 @@ func ChosePath(ar [][]string) [][]string {
 			arr = append(arr, ar[i])
 		}
 	}
+
+	sort.Slice(arr, func(i, j int) bool {
+		return len(arr[i]) < len(arr[j])
+	})
+
 	return arr
 }
 

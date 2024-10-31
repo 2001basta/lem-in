@@ -2,7 +2,6 @@ package lem_in
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -11,9 +10,6 @@ var output = [][]string{}
 func PrintAnts(ants int, paths [][]string) {
 	arr := Choose(paths)
 	paths = ChosePath(arr)
-	sort.Slice(paths, func(i, j int) bool {
-		return len(paths[i]) < len(paths[j])
-	})
 	affectPaths(ants, paths)
 	j := 0
 	an := 1
@@ -61,7 +57,6 @@ var antsPaths = make(map[int]int)
 func affectPaths(ants int, lastPath [][]string) {
 	ar := [][]string{}
 	a := 1
-	boo := false
 	for i := 1; i < len(lastPath); i++ {
 		diff := len(lastPath[i]) - len(lastPath[i-1])
 		ar = append(ar, lastPath[i-1])
@@ -72,11 +67,10 @@ func affectPaths(ants int, lastPath [][]string) {
 			}
 		}
 	}
+
+	ar = append(ar, lastPath[len(lastPath)-1])
+
 	for a <= ants {
-		if !boo {
-			ar = append(ar, lastPath[len(lastPath)-1])
-			boo = true
-		}
 		for k := 0; k < len(ar); k++ {
 			antsPaths[k]++
 			a++

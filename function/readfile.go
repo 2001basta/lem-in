@@ -44,7 +44,7 @@ func ReadFile() (int, [][]string, string, string) {
 		case "node":
 			id := checkline(scanner.Text())[1]
 			if (slices.Index(allRoms, id)) != -1 {
-				fmt.Println("ERROR: invalid data format, some rooms redeclare")
+				fmt.Println("ERROR: invalid data format, some rooms are redeclared")
 				os.Exit(1)
 			}
 			allRoms = append(allRoms, id)

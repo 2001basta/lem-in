@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -14,6 +15,7 @@ var (
 	links     [][]string
 	startNode string
 	endNode   string
+	allRoms   []string
 )
 
 func ReadFile() (int, [][]string, string, string) {
@@ -41,6 +43,11 @@ func ReadFile() (int, [][]string, string, string) {
 			end = true
 		case "node":
 			id := checkline(scanner.Text())[1]
+			if (slices.Index(allRoms, id)) != -1 {
+				fmt.Println("ERROR: invalid data format, some rooms redeclare")
+				os.Exit(1)
+			}
+			allRoms = append(allRoms, id)
 			if start && startNode == "" {
 				startNode = id
 				start = false
@@ -58,8 +65,13 @@ func ReadFile() (int, [][]string, string, string) {
 				os.Exit(1)
 			}
 		case "edge":
+			
 			from := checkline(scanner.Text())[1]
 			to := checkline(scanner.Text())[2]
+			if (slices.Index(allRoms, from)) == -1 || (slices.Index(allRoms, to)) == -1{
+				fmt.Println("ERROR: invalid data format, some rooms not defined")
+				os.Exit(1)
+			}
 			e := []string{from, to}
 			ereversed := []string{to, from}
 			if NotIn(links, e) && NotIn(links, ereversed) {
@@ -85,9 +97,6 @@ func checkline(s string) []string {
 		}
 		if validRoom(spl[0]) {
 			return []string{"node", spl[0]}
-		} else {
-			fmt.Println("ERROR: invalid data format, some rooms starts with 'L' or '#' ")
-			os.Exit(1)
 		}
 
 	}
@@ -121,7 +130,7 @@ func checkline(s string) []string {
 func validRoom(room string) bool {
 	if string(room[0]) == "L" || string(room[0]) == "#" {
 		fmt.Println("ERROR: invalid data format, some rooms starts with 'L' or '#' ")
-			os.Exit(1)
+		os.Exit(1)
 	}
 	return true
 }

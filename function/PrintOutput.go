@@ -35,12 +35,10 @@ func PrintAnts(ants int, paths [][]string) {
 	}
 
 	printoutput(output)
-	// fmt.Println(len(output))
 }
 
 func printoutput(output [][]string) {
 	for i := 0; i < len(output); i++ {
-		// time.Sleep(time.Second * 1/50 )
 		fmt.Println(strings.Join(output[i], " "))
 	}
 }
@@ -60,7 +58,6 @@ func moveAnts(ant int, path []string, j int) {
 
 var antsPaths = make(map[int]int)
 
-// a         int = 1
 func affectPaths(ants int, lastPath [][]string) {
 	ar := [][]string{}
 	a := 1

@@ -10,7 +10,6 @@ func ChosePath(ar [][]string) [][]string {
 				break
 			}
 		}
-
 		if isvalid {
 			arr = append(arr, ar[i])
 		}

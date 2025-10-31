@@ -40,34 +40,23 @@ type Game struct {
 }
 
 // Embedded ant-farm data
-const antFarmData = `3
+const antFarmData = `
+3
+2 5 0
 ##start
-1 23 3
-2 16 7
-3 16 3
-4 16 5
-5 9 3
-6 1 5
-7 4 8
+0 1 2
 ##end
-0 9 5
-0-4
-0-6
-1-3
-4-3
-5-2
-3-5
-4-2
+1 9 2
+3 5 4
+0-2
+0-3
 2-1
-7-6
-7-2
-7-4
-6-5
+3-1
+2-3
 
-L1-3 L2-2
-L1-4 L2-5 L3-3
-L1-0 L2-6 L3-4
-L2-0 L3-0`
+L1-2 L2-3
+L1-1 L2-1 L3-2
+L3-1`
 
 // Parse ant-farm data
 func parseAntFarm(data string) (map[string]Room, []Link, [][]Move) {
@@ -146,7 +135,7 @@ func NewGame() *Game {
 
 // Update moves ants every second
 func (g *Game) Update() error {
-	if g.step < len(g.moves) && time.Since(g.lastStep) > 1000*time.Millisecond {
+	if g.step < len(g.moves) && time.Since(g.lastStep) > 2000*time.Millisecond {
 		for _, mv := range g.moves[g.step] {
 			if room, ok := g.rooms[mv.Room]; ok {
 				g.ants[mv.Ant] = room

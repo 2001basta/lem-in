@@ -1,23 +1,19 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"image/color"
-	"log"
-	"os"
-	"strconv"
+	"math"
 	"strings"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// Room represents a node in the graph
+// Room represents a room in the colony
 type Room struct {
 	Name string
-	X, Y int
+	X, Y float32
 }
 
 // Link represents a connection between two rooms
@@ -32,67 +28,125 @@ type Move struct {
 
 // Game holds the state of the visualization
 type Game struct {
-	rooms map[string]Room
-	links []Link
-	moves [][]Move
-	ants  map[string]Room
-	step  int
+	rooms    map[string]Room
+	links    []Link
+	moves    [][]Move
+	ants     map[string]Room
+	step     int
 	lastStep time.Time
+	scale    float32
+	offsetX  float32
+	offsetY  float32
 }
 
-func parseInput() *Game {
-	scanner := bufio.NewScanner(os.Stdin)
+// Embedded ant-farm data
+const antFarmData = `3
+##start
+1 23 3
+2 16 7
+3 16 3
+4 16 5
+5 9 3
+6 1 5
+7 4 8
+##end
+0 9 5
+0-4
+0-6
+1-3
+4-3
+5-2
+3-5
+4-2
+2-1
+7-6
+7-2
+7-4
+6-5
+
+L1-3 L2-2
+L1-4 L2-5 L3-3
+L1-0 L2-6 L3-4
+L2-0 L3-0`
+
+// Parse ant-farm data
+func parseAntFarm(data string) (map[string]Room, []Link, [][]Move) {
+	lines := strings.Split(data, "\n")
 	rooms := make(map[string]Room)
 	var links []Link
 	var moves [][]Move
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 		if strings.Contains(line, "-") && !strings.HasPrefix(line, "L") {
-			// link
 			parts := strings.Split(line, "-")
-			links = append(links, Link{parts[0], parts[1]})
-		} else if strings.HasPrefix(line, "L") {
-			// move line
-			moveParts := strings.Split(line, " ")
-			var stepMoves []Move
-			for _, m := range moveParts {
-				parts := strings.Split(m, "-")
-				stepMoves = append(stepMoves, Move{Ant: parts[0], Room: parts[1]})
+			if len(parts) == 2 {
+				links = append(links, Link{A: parts[0], B: parts[1]})
 			}
-			moves = append(moves, stepMoves)
+		} else if strings.HasPrefix(line, "L") {
+			parts := strings.Split(line, " ")
+			var stepMoves []Move
+			for _, m := range parts {
+				moveParts := strings.Split(m, "-")
+				if len(moveParts) == 2 {
+					stepMoves = append(stepMoves, Move{Ant: moveParts[0], Room: moveParts[1]})
+				}
+			}
+			if len(stepMoves) > 0 {
+				moves = append(moves, stepMoves)
+			}
 		} else {
-			// room
 			parts := strings.Fields(line)
 			if len(parts) == 3 {
-				x, _ := strconv.Atoi(parts[1])
-				y, _ := strconv.Atoi(parts[2])
-				rooms[parts[0]] = Room{parts[0], x, y}
+				x := float32(parseInt(parts[1]))
+				y := float32(parseInt(parts[2]))
+				rooms[parts[0]] = Room{Name: parts[0], X: x, Y: y}
 			}
 		}
 	}
+	return rooms, links, moves
+}
 
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+func parseInt(s string) int {
+	v := 0
+	negative := false
+	for i := 0; i < len(s); i++ {
+		if s[i] == '-' {
+			negative = true
+			continue
+		}
+		if s[i] >= '0' && s[i] <= '9' {
+			v = v*10 + int(s[i]-'0')
+		}
 	}
+	if negative {
+		return -v
+	}
+	return v
+}
 
+// NewGame creates a new game instance
+func NewGame() *Game {
+	rooms, links, moves := parseAntFarm(antFarmData)
 	return &Game{
-		rooms: rooms,
-		links: links,
-		moves: moves,
-		ants:  make(map[string]Room),
-		step:  0,
+		rooms:    rooms,
+		links:    links,
+		moves:    moves,
+		ants:     make(map[string]Room),
+		step:     0,
 		lastStep: time.Now(),
+		scale:    60,  // Scale factor
+		offsetX:  100, // Left margin
+		offsetY:  100, // Top margin
 	}
 }
 
-// Update moves ants at a fixed interval
+// Update moves ants every second
 func (g *Game) Update() error {
-	// move every 500ms
-	if g.step < len(g.moves) && time.Since(g.lastStep) > 2000*time.Millisecond {
+	if g.step < len(g.moves) && time.Since(g.lastStep) > 1000*time.Millisecond {
 		for _, mv := range g.moves[g.step] {
 			if room, ok := g.rooms[mv.Room]; ok {
 				g.ants[mv.Ant] = room
@@ -104,41 +158,81 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw the rooms, links, and ants
-func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 255}) 
+// drawFilledCircle draws a filled circle using triangulation
+func drawFilledCircle(screen *ebiten.Image, cx, cy, radius float32, clr color.Color) {
+	segments := 32
+	for i := 0; i < segments; i++ {
+		angle1 := float32(i) * 2 * math.Pi / float32(segments)
+		angle2 := float32(i+1) * 2 * math.Pi / float32(segments)
 
-	// Draw links
-	for _, l := range g.links {
-		a := g.rooms[l.A]
-		b := g.rooms[l.B]
-		ebitenutil.DrawLine(screen, float64(a.X*30), float64(a.Y*30),
-			float64(b.X*30), float64(b.Y*30), color.RGBA{255, 255, 255, 255})
-	}
+		// Create triangle from center to edge
+		x1 := cx
+		y1 := cy
+		x2 := cx + radius*float32(math.Cos(float64(angle1)))
+		y2 := cy + radius*float32(math.Sin(float64(angle1)))
+		x3 := cx + radius*float32(math.Cos(float64(angle2)))
+		y3 := cy + radius*float32(math.Sin(float64(angle2)))
 
-	// Draw rooms
-	for _, r := range g.rooms {
-		ebitenutil.DrawCircle(screen, float64(r.X*30+2), float64(r.Y*30+2), 20, color.RGBA{0, 180, 255, 255})
-		ebitenutil.DebugPrintAt(screen, r.Name, r.X*30, r.Y*30)
-	}
-
-	// Draw ants
-	for _, pos := range g.ants {
-		ebitenutil.DrawCircle(screen, float64(pos.X*30), float64(pos.Y*30), 10, color.RGBA{255, 255, 0, 255})
+		// Draw lines to form filled triangle
+		vector.StrokeLine(screen, x1, y1, x2, y2, 1, clr, false)
+		vector.StrokeLine(screen, x2, y2, x3, y3, 1, clr, false)
+		vector.StrokeLine(screen, x3, y3, x1, y1, 1, clr, false)
+		
+		// Fill with additional lines
+		for j := float32(0); j < radius; j += 0.5 {
+			scale := j / radius
+			ix2 := cx + scale*radius*float32(math.Cos(float64(angle1)))
+			iy2 := cy + scale*radius*float32(math.Sin(float64(angle1)))
+			ix3 := cx + scale*radius*float32(math.Cos(float64(angle2)))
+			iy3 := cy + scale*radius*float32(math.Sin(float64(angle2)))
+			vector.StrokeLine(screen, ix2, iy2, ix3, iy3, 1, clr, false)
+		}
 	}
 }
 
-// Layout window size
+// Draw renders rooms, links, and ants
+func (g *Game) Draw(screen *ebiten.Image) {
+	screen.Fill(color.Black)
+
+	// Draw links between rooms
+	for _, l := range g.links {
+		a, okA := g.rooms[l.A]
+		b, okB := g.rooms[l.B]
+		if okA && okB {
+			x1 := a.X*g.scale + g.offsetX
+			y1 := a.Y*g.scale + g.offsetY
+			x2 := b.X*g.scale + g.offsetX
+			y2 := b.Y*g.scale + g.offsetY
+			vector.StrokeLine(screen, x1, y1, x2, y2, 2, color.White, false)
+		}
+	}
+
+	// Draw rooms as blue filled circles
+	for _, r := range g.rooms {
+		cx := r.X*g.scale + g.offsetX
+		cy := r.Y*g.scale + g.offsetY
+		drawFilledCircle(screen, cx, cy, 20, color.RGBA{0, 180, 255, 255})
+	}
+
+	// Draw ants as yellow filled circles
+	for _, pos := range g.ants {
+		cx := pos.X*g.scale + g.offsetX
+		cy := pos.Y*g.scale + g.offsetY
+		drawFilledCircle(screen, cx, cy, 10, color.RGBA{255, 255, 0, 255})
+	}
+}
+
+// Layout defines the window size
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return 1000, 600
 }
 
-// Entry point
+// Main entry point
 func main() {
-	game := parseInput()
+	game := NewGame()
 	ebiten.SetWindowSize(1000, 600)
 	ebiten.SetWindowTitle("Lem-in Ant Farm 🐜")
 	if err := ebiten.RunGame(game); err != nil {
-		fmt.Println("Error:", err)
+		panic(err)
 	}
 }

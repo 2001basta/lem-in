@@ -36,6 +36,7 @@ func ReadFile() (int, [][]string, string, string) {
 	scanner := bufio.NewScanner(nodesFile)
 
 	for scanner.Scan() {
+		fmt.Println(scanner.Text())
 		switch checkline(scanner.Text())[0] {
 		case "start":
 			start = true
